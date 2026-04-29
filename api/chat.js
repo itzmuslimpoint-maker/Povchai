@@ -1,8 +1,4 @@
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
   try {
     const { messages } = req.body;
 
@@ -14,7 +10,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "meta/llama3-70b-instruct",
-        messages
+        messages: messages
       })
     });
 
@@ -24,6 +20,6 @@ export default async function handler(req, res) {
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: "API failed" });
   }
 }
