@@ -1,4 +1,7 @@
+import OpenAI from "openai";
+
 export default async function handler(req, res) {
+
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -6,29 +9,30 @@ export default async function handler(req, res) {
   try {
     const { messages } = req.body;
 
-    const response = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.NVIDIA_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: "meta/llama3-70b-instruct", // NVIDIA model
-        messages
-      })
+    const openai = new OpenAI({
+      apiKey: process.env.NVIDIA_API_KEY,
+      baseURL: "https://nim.api.nvidia.com/v1",
     });
 
-    const data = await response.json();
+    const completion = await openai.chat.completions.create({
+      model: "mistralai/mistral-7b-instruct", // 🔥 stable model use करो
+      messages: messages,
+      temperature: 0.7,
+      max_tokens: 500,
+    });
 
-    if (!response.ok) {
-      console.error(data);
-      return res.status(500).json({ error: "API failed", details: data });
-    }
-
-    return res.status(200).json(data);
+    return res.status(200).json({
+      choices: [
+        {
+          message: {
+            content: completion.choices[0].message.content
+          }
+        }
+      ]
+    });
 
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Server error" });
+    console.error("API ERROR:", err);
+    return res.status(500).json({ error: "API failed" });
   }
 }
